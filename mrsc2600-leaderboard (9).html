@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MRSC2600 // TUTORIAL LEADERBOARD</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root {
+  --black:  #000305;
+  --dark:   #050c10;
+  --panel:  #091520;
+  --panel2: #0d1e2e;
+  --border: #1a4060;
+  --bdr2:   #0a2535;
+  --cyan:   #00f5ff;
+  --yellow: #ffe600;
+  --magenta:#ff00cc;
+  --green:  #00ff88;
+  --orange: #ff6600;
+  --red:    #ff2244;
+  --white:  #e8f4ff;
+  --muted:  #3a7a9a;
+  --nm:     #cc00ff;
+  --rt:     #00ff88;
+  --dr:     #00aaff;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Share Tech Mono',monospace;background:var(--black);color:var(--white);min-height:100vh;overflow-x:hidden}
+
+/* SCANLINES */
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.18) 2px,rgba(0,0,0,.18) 4px);pointer-events:none;z-index:9999}
+body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at center,transparent 60%,rgba(0,0,0,.7) 100%);pointer-events:none;z-index:9998}
+
+/* ANIMATIONS */
+@keyframes flicker{0%,100%{opacity:1}92%{opacity:1}93%{opacity:.4}94%{opacity:1}96%{opacity:.7}97%{opacity:1}}
+@keyframes blink{0%,49%{opacity:1}50%,100%{opacity:0}}
+@keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-100%)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@keyframes glitchX{0%,100%{clip-path:none;transform:none}92%{clip-path:polygon(0 20%,100% 20%,100% 22%,0 22%);transform:translateX(-3px)}94%{clip-path:polygon(0 60%,100% 60%,100% 65%,0 65%);transform:translateX(3px)}96%{clip-path:none;transform:none}}
+@keyframes coin{0%{transform:translateY(0) scale(1);opacity:1}80%{transform:translateY(-60px) scale(1.2);opacity:1}100%{transform:translateY(-80px) scale(.8);opacity:0}}
+@keyframes rowIn{from{opacity:0;transform:translateX(-16px)}to{opacity:1;transform:translateX(0)}}
+@keyframes pulseG{0%,100%{box-shadow:0 0 4px var(--green)}50%{box-shadow:0 0 16px var(--green),0 0 32px rgba(0,255,136,.3)}}
+
+/* MARQUEE BAR */
+.mq-wrap{background:var(--yellow);overflow:hidden;height:26px;display:flex;align-items:center;border-bottom:3px solid var(--orange)}
+.mq-inner{display:inline-block;white-space:nowrap;animation:marquee 20s linear infinite;font-family:'Press Start 2P',monospace;font-size:.55rem;color:var(--black);padding-left:100%}
+
+/* HEADER */
+.header{background:var(--dark);border-bottom:2px solid var(--cyan);padding:18px 24px 14px;animation:flicker 10s infinite;box-shadow:0 2px 0 var(--border),0 4px 24px rgba(0,245,255,.12)}
+.hdr-inner{max-width:1000px;margin:0 auto;display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px}
+.logo-top{font-family:'Press Start 2P',monospace;font-size:.48rem;color:var(--muted);letter-spacing:.15em;margin-bottom:4px}
+.logo-main{font-family:'Press Start 2P',monospace;font-size:1rem;color:var(--cyan);text-shadow:0 0 8px var(--cyan),0 0 20px rgba(0,245,255,.4);animation:glitchX 9s infinite;line-height:1.5}
+.logo-sub{font-family:'VT323',monospace;font-size:1.15rem;color:var(--yellow);text-shadow:0 0 8px var(--yellow);letter-spacing:.1em}
+.live-badge{font-family:'Press Start 2P',monospace;font-size:.48rem;background:var(--red);color:#fff;padding:4px 8px;animation:blink 1s step-end infinite;display:inline-block}
+.insert-coin{font-family:'Press Start 2P',monospace;font-size:.42rem;color:var(--yellow);text-shadow:0 0 8px var(--yellow);animation:blink 1.3s step-end infinite;margin-top:10px;letter-spacing:.06em}
+
+/* TABS */
+.tab-bar{background:var(--dark);border-bottom:2px solid var(--border);padding:0 24px;display:flex;overflow-x:auto}
+.tab-bar::-webkit-scrollbar{height:3px}.tab-bar::-webkit-scrollbar-thumb{background:var(--cyan)}
+.tab{font-family:'Press Start 2P',monospace;font-size:.5rem;padding:13px 18px;border:none;background:transparent;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;transition:color .15s;white-space:nowrap;letter-spacing:.04em}
+.tab:hover{color:var(--white)}
+.tab.active{color:var(--cyan);border-bottom-color:var(--cyan);text-shadow:0 0 8px var(--cyan)}
+
+/* MAIN */
+.main{max-width:1000px;margin:0 auto;padding:24px 18px 60px}
+.panel{display:none}.panel.active{display:block}
+
+/* PIXEL BOX */
+.pbox{background:var(--panel);border:2px solid var(--border);position:relative;box-shadow:4px 4px 0 var(--bdr2)}
+.pbox-title{font-family:'Press Start 2P',monospace;font-size:.5rem;color:var(--cyan);text-shadow:0 0 8px var(--cyan);background:var(--panel);padding:0 8px;position:absolute;top:-10px;left:16px;letter-spacing:.1em;white-space:nowrap}
+
+/* STATS */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:22px}
+@media(max-width:580px){.stats-row{grid-template-columns:repeat(2,1fr)}}
+.stat-card{background:var(--panel);border:1px solid var(--border);padding:14px 10px;text-align:center;box-shadow:3px 3px 0 var(--bdr2)}
+.stat-lbl{font-family:'Press Start 2P',monospace;font-size:.38rem;color:var(--muted);letter-spacing:.1em;margin-bottom:6px}
+.stat-val{font-family:'VT323',monospace;font-size:2.8rem;line-height:1}
+
+/* TUTORIAL SELECTOR */
+.tut-row{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.tut-lbl{font-family:'Press Start 2P',monospace;font-size:.42rem;color:var(--muted);letter-spacing:.06em;margin-right:2px}
+.tut-btn{font-family:'Press Start 2P',monospace;font-size:.42rem;padding:7px 11px;border:2px solid var(--border);background:var(--panel2);color:var(--muted);cursor:pointer;position:relative;box-shadow:2px 2px 0 var(--bdr2);transition:all .1s;letter-spacing:.04em}
+.tut-btn:hover{color:var(--white);border-color:var(--white)}
+.tut-btn.active{background:var(--yellow);color:var(--black);border-color:var(--yellow);box-shadow:2px 2px 0 #887700,0 0 14px rgba(255,230,0,.4)}
+.cdot{position:absolute;top:-5px;right:-5px;width:9px;height:9px;border-radius:50%;border:1px solid var(--black)}
+.cdot-open{background:var(--green);box-shadow:0 0 6px var(--green)}
+.cdot-closed{background:var(--red);box-shadow:0 0 6px var(--red)}
+
+/* DISC FILTERS */
+.ctrl-row{display:flex;gap:7px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-bottom:14px}
+.disc-filters{display:flex;gap:5px;flex-wrap:wrap}
+.dbtn{font-family:'Press Start 2P',monospace;font-size:.4rem;padding:6px 10px;border:1px solid var(--border);background:var(--panel2);color:var(--muted);cursor:pointer;box-shadow:2px 2px 0 var(--bdr2);transition:all .1s;letter-spacing:.04em}
+.dbtn:hover{color:var(--white)}
+.dbtn.on-all{background:var(--orange);color:var(--black);border-color:var(--orange);box-shadow:2px 2px 0 #883300,0 0 10px rgba(255,102,0,.3)}
+.dbtn.on-NM {background:var(--nm);    color:var(--black);border-color:var(--nm);    box-shadow:2px 2px 0 #660099,0 0 10px rgba(204,0,255,.3)}
+.dbtn.on-RT {background:var(--rt);    color:var(--black);border-color:var(--rt);    box-shadow:2px 2px 0 #006633,0 0 10px rgba(0,255,136,.3)}
+.dbtn.on-DR {background:var(--dr);    color:var(--black);border-color:var(--dr);    box-shadow:2px 2px 0 #003388,0 0 10px rgba(0,170,255,.3)}
+.cnt-tag{font-size:.75rem;color:var(--muted)}
+
+/* TABLE */
+.lb-wrap{overflow-x:auto;border:1px solid var(--border);box-shadow:4px 4px 0 var(--bdr2)}
+.lb-table{width:100%;border-collapse:collapse;min-width:500px}
+.lb-table thead{background:var(--panel2);border-bottom:2px solid var(--cyan)}
+.lb-table th{font-family:'Press Start 2P',monospace;font-size:.4rem;color:var(--cyan);text-shadow:0 0 8px var(--cyan);padding:11px 13px;text-align:left;letter-spacing:.07em;white-space:nowrap}
+.lb-table td{padding:10px 13px;border-bottom:1px solid var(--bdr2);font-size:.88rem;vertical-align:middle}
+.lb-table tr:hover td{background:rgba(0,245,255,.03)}
+.lb-table tbody tr{animation:rowIn .3s ease both}
+
+/* rank */
+.rnk{display:flex;align-items:center;justify-content:center;width:36px;height:36px;font-family:'Press Start 2P',monospace;font-size:.5rem;border:2px solid}
+.r1{border-color:var(--yellow);color:var(--yellow);box-shadow:2px 2px 0 #887700;text-shadow:0 0 8px var(--yellow);animation:float 2s ease-in-out infinite}
+.r2{border-color:#c0c0c0;color:#c0c0c0;box-shadow:2px 2px 0 #555}
+.r3{border-color:#cc7700;color:#cc7700;box-shadow:2px 2px 0 #663300}
+.rn{border-color:var(--border);color:var(--muted);box-shadow:2px 2px 0 var(--bdr2);font-size:.42rem}
+
+/* name */
+.nm-cell{font-family:'VT323',monospace;font-size:1.25rem;letter-spacing:.05em}
+
+/* disc badge */
+.dbadge{font-family:'Press Start 2P',monospace;font-size:.36rem;padding:3px 7px;border:1px solid;white-space:nowrap}
+.db-NM {color:var(--nm); border-color:var(--nm); background:rgba(204,0,255,.1); text-shadow:0 0 6px var(--nm)}
+.db-RT {color:var(--rt); border-color:var(--rt); background:rgba(0,255,136,.1); text-shadow:0 0 6px var(--rt)}
+.db-DR {color:var(--dr);border-color:var(--dr);background:rgba(0,170,255,.1);text-shadow:0 0 6px var(--dr)}
+
+/* score */
+.sc-cell{display:flex;align-items:center;gap:7px;min-width:120px}
+.sc-num{font-family:'VT323',monospace;font-size:1.5rem;line-height:1;min-width:34px;text-align:right}
+.bar-bg{flex:1;height:10px;background:var(--bdr2);border:1px solid var(--border);overflow:hidden}
+.bar-fill{height:100%;position:relative;transition:width .8s cubic-bezier(.4,0,.2,1)}
+.bar-fill::after{content:'';position:absolute;right:0;top:0;bottom:0;width:2px;background:rgba(255,255,255,.6)}
+
+/* badges */
+.bdg-cell{display:flex;gap:3px;flex-wrap:wrap}
+
+/* closed note */
+.closed-row td{font-family:'Press Start 2P',monospace;font-size:.4rem;color:var(--red);background:rgba(255,34,68,.05);border-top:1px solid rgba(255,34,68,.2);padding:8px 13px;letter-spacing:.05em}
+
+/* empty */
+.empty-state{text-align:center;padding:60px 24px}
+.empty-px{font-family:'Press Start 2P',monospace;font-size:.55rem;line-height:2.4;color:var(--muted)}
+.empty-px span{color:var(--cyan);text-shadow:0 0 8px var(--cyan)}
+
+/* SUBMIT */
+.sub-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;align-items:start}
+@media(max-width:600px){.sub-grid{grid-template-columns:1fr}}
+.px-lbl{display:block;font-family:'Press Start 2P',monospace;font-size:.4rem;color:var(--cyan);letter-spacing:.1em;margin-bottom:7px;text-shadow:0 0 8px var(--cyan)}
+.px-inp{width:100%;background:var(--dark);border:2px solid var(--border);padding:11px 13px;font-family:'Share Tech Mono',monospace;font-size:.88rem;color:var(--white);outline:none;transition:border-color .15s,box-shadow .15s;box-shadow:2px 2px 0 var(--bdr2)}
+.px-inp:focus{border-color:var(--cyan);box-shadow:2px 2px 0 var(--bdr2),0 0 12px rgba(0,245,255,.2)}
+.px-inp::placeholder{color:var(--muted)}
+.ig{margin-bottom:16px}
+.px-btn{display:block;width:100%;padding:13px;font-family:'Press Start 2P',monospace;font-size:.52rem;letter-spacing:.07em;border:2px solid;cursor:pointer;text-align:center;transition:all .1s}
+.px-btn:active{transform:translate(2px,2px)!important;box-shadow:none!important}
+.px-btn:disabled{opacity:.3;cursor:not-allowed;transform:none!important}
+.btn-go{background:var(--green);color:var(--black);border-color:var(--green);box-shadow:4px 4px 0 #006633}
+.btn-go:hover:not(:disabled){box-shadow:6px 6px 0 #006633;transform:translate(-1px,-1px)}
+.prev-panel{background:var(--dark);border:1px solid var(--border);padding:18px;font-family:'VT323',monospace;font-size:1.05rem;box-shadow:3px 3px 0 var(--bdr2);min-height:170px}
+.prow{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--bdr2);gap:8px}
+.prow:last-child{border-bottom:none}
+.pk{color:var(--muted);font-size:.92rem}
+.pv{color:var(--cyan);text-align:right}
+.no-prev{font-family:'Press Start 2P',monospace;font-size:.42rem;color:var(--muted);text-align:center;padding:36px 16px;line-height:2.4}
+.msg{padding:9px 13px;font-family:'Press Start 2P',monospace;font-size:.42rem;line-height:1.9;display:none;margin-top:11px;box-shadow:2px 2px 0;letter-spacing:.04em}
+.msg.ok{background:rgba(0,255,136,.08);border:1px solid var(--green);color:var(--green);box-shadow-color:#006633}
+.msg.err{background:rgba(255,34,68,.08);border:1px solid var(--red);color:var(--red);box-shadow-color:#880022}
+
+/* ADMIN */
+.sec-hd{font-family:'Press Start 2P',monospace;font-size:.48rem;color:var(--magenta);text-shadow:0 0 8px var(--magenta);letter-spacing:.1em;margin-bottom:12px;padding-bottom:7px;border-bottom:1px solid var(--border)}
+.cut-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;margin-bottom:18px}
+.cut-row{background:var(--dark);border:1px solid var(--border);padding:13px;display:flex;flex-direction:column;gap:7px;box-shadow:2px 2px 0 var(--bdr2)}
+.cut-lbl{font-family:'Press Start 2P',monospace;font-size:.4rem;color:var(--yellow);letter-spacing:.07em}
+.dt-inp{background:var(--black);border:1px solid var(--border);color:var(--white);font-family:'Share Tech Mono',monospace;font-size:.8rem;padding:6px 9px;width:100%;outline:none;cursor:pointer}
+.dt-inp:focus{border-color:var(--yellow)}
+.dt-status{font-size:.72rem}
+.st-open{color:var(--green)}.st-closed{color:var(--red)}.st-none{color:var(--muted)}
+.btn-save{background:var(--yellow);color:var(--black);border-color:var(--yellow);box-shadow:4px 4px 0 #887700;font-size:.44rem;margin-bottom:7px}
+.btn-save:hover:not(:disabled){transform:translate(-1px,-1px);box-shadow:6px 6px 0 #887700}
+.danger-zone{margin-top:26px;padding-top:18px;border-top:1px dashed var(--border)}
+.danger-hd{font-family:'Press Start 2P',monospace;font-size:.4rem;color:var(--red);text-shadow:0 0 8px var(--red);margin-bottom:11px;letter-spacing:.1em}
+.btn-exp{background:var(--panel2);color:var(--cyan);border-color:var(--border);box-shadow:4px 4px 0 var(--bdr2);font-size:.44rem;margin-bottom:7px}
+.btn-exp:hover:not(:disabled){border-color:var(--cyan)}
+.btn-del{background:var(--red);color:#fff;border-color:var(--red);box-shadow:4px 4px 0 #880022;font-size:.44rem;margin-bottom:7px}
+.btn-del:hover:not(:disabled){transform:translate(-1px,-1px);box-shadow:6px 6px 0 #880022}
+
+/* COIN */
+.coin-pop{position:fixed;pointer-events:none;font-family:'Press Start 2P',monospace;font-size:.85rem;color:var(--yellow);text-shadow:0 0 8px var(--yellow);z-index:10000;animation:coin 1.2s ease-out forwards}
+
+/* utils */
+.p24{padding:26px}.mt14{margin-top:14px}.mb22{margin-bottom:22px}
+</style>
+</head>
+<body>
+
+<div class="mq-wrap">
+  <div class="mq-inner">★ MRSC2600 TUTORIAL LEADERBOARD ★ INSERT CARRY CODE TO CONTINUE ★ PERSON-CENTRED CARE ★ MEDICAL RADIATION PRACTICE ★ SUBMIT YOUR SCORE ★ HIGH SCORES TONIGHT ★ FIRST SUBMISSION IS FINAL ★ PLAY FAIR ★</div>
+</div>
+
+<div class="header">
+  <div class="hdr-inner">
+    <div>
+      <div class="logo-top">UNIVERSITY // MEDICAL RADIATION SCIENCES</div>
+      <div class="logo-main">MRSC2600</div>
+      <div class="logo-sub">◈ TUTORIAL LEADERBOARD ◈</div>
+    </div>
+    <div style="text-align:right">
+      <div class="live-badge">● LIVE</div>
+      <div class="insert-coin">INSERT CARRY CODE</div>
+    </div>
+  </div>
+</div>
+
+<div class="tab-bar">
+  <button class="tab active" onclick="switchTab('board',this)">🏆 LEADERBOARD</button>
+  <button class="tab" onclick="switchTab('submit',this)">➕ SUBMIT SCORE</button>
+  <button class="tab" onclick="switchTab('admin',this)">⚙ EDUCATOR</button>
+</div>
+
+<div class="main">
+
+  <!-- ══ BOARD ══ -->
+  <div class="panel active" id="panel-board">
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-lbl">PLAYERS</div><div class="stat-val" style="color:var(--cyan)"   id="sv-p">—</div></div>
+      <div class="stat-card"><div class="stat-lbl">AVG SCORE</div><div class="stat-val" style="color:var(--yellow)" id="sv-a">—</div></div>
+      <div class="stat-card"><div class="stat-lbl">TOP SCORE</div><div class="stat-val" style="color:var(--green)"  id="sv-t">—</div></div>
+      <div class="stat-card"><div class="stat-lbl">TUTORIALS</div><div class="stat-val" style="color:var(--magenta)"id="sv-n">—</div></div>
+    </div>
+
+    <div class="tut-row mb22" id="tutRow">
+      <span class="tut-lbl">TUTORIAL ▶</span>
+      <button class="tut-btn active" data-tut="all" onclick="setTut('all',this)">ALL</button>
+    </div>
+
+    <div class="ctrl-row">
+      <div class="disc-filters">
+        <button class="dbtn on-all" data-d="all" onclick="setDisc('all',this)">ALL DISCIPLINES</button>
+        <button class="dbtn" data-d="NM"  onclick="setDisc('NM',this)">NM</button>
+        <button class="dbtn" data-d="RT"  onclick="setDisc('RT',this)">RT</button>
+        <button class="dbtn" data-d="RAD" onclick="setDisc('DR',this)">DR</button>
+      </div>
+      <span class="cnt-tag" id="lbCnt"></span>
+    </div>
+
+    <div class="lb-wrap">
+      <table class="lb-table">
+        <thead><tr>
+          <th>#</th><th>PLAYER</th><th>DISC</th><th>SCORE</th><th>BADGES</th><th>TUT</th>
+        </tr></thead>
+        <tbody id="lbBody"></tbody>
+      </table>
+      <div class="empty-state" id="emptyState" style="display:none">
+        <div class="empty-px"><span>NO SCORES YET</span><br>▓▓▓▓▓▓▓▓<br>GO TO SUBMIT TAB<br>& PASTE YOUR CARRY CODE<br>▓▓▓▓▓▓▓▓</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SUBMIT ══ -->
+  <div class="panel" id="panel-submit">
+
+    <!-- DEADLINE STATUS BOARD -->
+    <div class="pbox" style="margin-bottom:18px;padding:20px 22px">
+      <div class="pbox-title">// SUBMISSION WINDOWS</div>
+      <div style="margin-top:12px"></div>
+      <div id="deadlineBoard" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px"></div>
+    </div>
+
+    <div class="pbox p24">
+      <div class="pbox-title">// SUBMIT YOUR SCORE</div>
+      <div class="mt14"></div>
+      <p style="font-family:'Share Tech Mono',monospace;font-size:.82rem;color:var(--muted);margin-bottom:14px;line-height:1.7">
+        Complete your MRSC2600 tutorial, then paste your carry code below.<br>
+        <span style="color:var(--yellow)">⚠ First submission is final.</span> Scores cannot be changed once submitted — not even for a higher score.
+      </p>
+      <div style="background:rgba(255,230,0,.07);border:1px solid rgba(255,230,0,.35);padding:12px 14px;margin-bottom:20px;box-shadow:2px 2px 0 rgba(255,230,0,.15)">
+        <div style="font-family:'Press Start 2P',monospace;font-size:.42rem;color:var(--yellow);letter-spacing:.08em;margin-bottom:7px">🏆 PRIZE ELIGIBILITY</div>
+        <p style="font-family:'Share Tech Mono',monospace;font-size:.78rem;color:#c8b840;line-height:1.6">
+          Your carry code may include a <strong style="color:var(--yellow)">Student ID</strong> if you entered it when setting up the tutorial.<br>
+          This is <em>optional</em> — but if you want to be eligible for end-of-course prizes, your Student ID must be in your code.<br>
+          <span style="color:var(--muted)">Your ID is never shown publicly on the leaderboard. It is only used by your educator to confirm your identity if you win.</span>
+        </p>
+      </div>
+      <div class="sub-grid">
+        <div>
+          <div class="ig">
+            <label class="px-lbl">CARRY CODE</label>
+            <input class="px-inp" type="text" id="codeInput" placeholder="RT-INQ-PRAC-82-Y-EQ-JSmith-T3" oninput="previewCode()" autocomplete="off" spellcheck="false"/>
+          </div>
+          <button class="px-btn btn-go" id="submitBtn" onclick="submitScore()" disabled>▶ SUBMIT SCORE ◀</button>
+          <div class="msg" id="subMsg"></div>
+        </div>
+        <div>
+          <div class="px-lbl">PREVIEW</div>
+          <div class="prev-panel" id="prevPanel">
+            <div class="no-prev">░░ PASTE CARRY CODE ░░<br>TO SEE PREVIEW</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ ADMIN ══ -->
+  <div class="panel" id="panel-admin">
+    <div class="pbox p24">
+      <div class="pbox-title">// EDUCATOR CONTROLS</div>
+      <div class="mt14"></div>
+
+      <div class="ig mb22" style="max-width:300px">
+        <label class="px-lbl">ADMIN PASSWORD</label>
+        <input class="px-inp" type="password" id="adminPass" placeholder="Enter password"/>
+      </div>
+
+      <div class="sec-hd">◈ SUBMISSION CUTOFF DATES</div>
+      <p style="font-family:'Share Tech Mono',monospace;font-size:.78rem;color:var(--muted);margin-bottom:14px;line-height:1.6">
+        Set a closing datetime for each tutorial. After this point students cannot submit scores.<br>
+        Leave blank = always open. 🟢 open · 🔴 closed.
+      </p>
+      <div class="cut-grid" id="cutGrid"></div>
+      <button class="px-btn btn-save" onclick="saveCutoffs()">💾 SAVE CUTOFF DATES</button>
+      <div class="msg" id="cutMsg"></div>
+
+      <div class="danger-zone">
+        <div class="danger-hd" style="color:var(--yellow);text-shadow:0 0 8px var(--yellow)">🏆 PRIZE ELIGIBLE PLAYERS</div>
+        <p style="font-family:'Share Tech Mono',monospace;font-size:.78rem;color:var(--muted);margin-bottom:12px;line-height:1.6">
+          Export only students who included their Student ID in their carry code — these are your prize-eligible players.
+        </p>
+        <button class="px-btn" style="background:var(--yellow);color:var(--black);border-color:var(--yellow);box-shadow:4px 4px 0 #887700;font-size:.44rem;margin-bottom:16px" onclick="exportPrizeCSV()">🏆 EXPORT PRIZE-ELIGIBLE CSV</button>
+        <div id="prizeMsg" class="msg"></div>
+      </div>
+      <div class="danger-zone">
+        <div class="danger-hd">⚠ DANGER ZONE</div>
+        <button class="px-btn btn-exp" onclick="exportCSV()">📥 EXPORT FULL LEADERBOARD CSV</button><br>
+        <button class="px-btn btn-del" onclick="clearBoard()">🗑 CLEAR ALL SCORES</button>
+        <div class="msg" id="admMsg"></div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<script>
+// ═══════════════════════════════════════════
+//  CONFIG — edit to match your setup
+// ═══════════════════════════════════════════
+const ADMIN_PW   = "mrsc2600admin"; // ← CHANGE THIS
+const APPS_URL   = "https://script.google.com/macros/s/AKfycbzB1LCVd8kZFk61CcsljRucuObrFboKeO_YZ5XoaluREf4WAA-dojEGee_JJHWDexDO/exec";
+const TUTORIALS  = ["T1","T2","T3","T4","T5","T6"];
+const DISC_NAMES = { NM:"Nuclear Medicine", RT:"Radiation Therapy", DR:"Diagnostic Radiography" };
+const DISC_COLS  = { NM:"var(--nm)", RT:"var(--rt)", DR:"var(--dr)" };
+const BADGE_EMO  = { EQ:"🧠", PCC:"💛", COMM:"💬", REFL:"✨", MASTER:"🏅", STREAK:"🔥" };
+
+// ═══════════════════════════════════════════
+//  GOOGLE SHEETS API
+// ═══════════════════════════════════════════
+async function apiCall(params) {
+  const url = APPS_URL + '?' + new URLSearchParams(params).toString();
+  try {
+    const r = await fetch(url, {
+      method: 'GET',
+      redirect: 'follow',
+      mode: 'cors',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    const text = await r.text();
+    try { return JSON.parse(text); }
+    catch { console.error('Parse error:', text); return { ok: false, error: 'Parse error' }; }
+  } catch(e) {
+    // Fallback: try no-cors JSONP approach via script tag injection
+    return await apiCallJsonp(params);
+  }
+}
+
+function apiCallJsonp(params) {
+  return new Promise((resolve) => {
+    const cbName = 'cb_' + Math.random().toString(36).slice(2);
+    params.callback = cbName;
+    const url = APPS_URL + '?' + new URLSearchParams(params).toString();
+    const script = document.createElement('script');
+    const timeout = setTimeout(() => {
+      delete window[cbName];
+      document.body.removeChild(script);
+      resolve({ ok: false, error: 'Timeout' });
+    }, 10000);
+    window[cbName] = (data) => {
+      clearTimeout(timeout);
+      delete window[cbName];
+      document.body.removeChild(script);
+      resolve(data);
+    };
+    script.src = url;
+    document.body.appendChild(script);
+  });
+}
+
+async function loadScoresFromSheet() {
+  try {
+    const r = await apiCall({ action: 'load' });
+    return (r && r.ok && Array.isArray(r.scores)) ? r.scores : [];
+  } catch(e) { console.error('loadScores error:', e); return []; }
+}
+
+async function submitToSheet(parsed) {
+  return await apiCall({
+    action:  'submit',
+    name:    parsed.name,
+    sid:     parsed.sid || '',
+    disc:    parsed.disc,
+    pts:     parsed.pts,
+    type:    parsed.type || '',
+    prof:    parsed.prof || '',
+    tut:     parsed.tut,
+    badges:  (parsed.badges||[]).join(';'),
+    raw:     parsed.raw
+  });
+}
+
+async function loadCutoffsFromSheet() {
+  try {
+    const r = await apiCall({ action: 'loadCutoffs' });
+    if (!r || !r.ok) return {};
+    try { return JSON.parse(r.cutoffs) || {}; } catch { return {}; }
+  } catch(e) { console.error('loadCutoffs error:', e); return {}; }
+}
+
+async function saveCutoffsToSheet(cutoffs, password) {
+  return await apiCall({ action: 'saveCutoffs', cutoffs: JSON.stringify(cutoffs), password });
+}
+
+async function clearScoresFromSheet(password) {
+  return await apiCall({ action: 'clear', password });
+}
+
+// ═══════════════════════════════════════════
+//  PARSE CARRY CODE  DISC-TYPE-PROF-PTS-REFL-BDG-NAME-T#[-SID]
+//  SID optional (segment 9). Digits only, 5-10 chars.
+// ═══════════════════════════════════════════
+function parseCode(raw) {
+  try {
+    const p = raw.trim().toUpperCase().split("-");
+    if (p.length < 8) return null;
+    const disc=p[0], type=p[1], prof=p[2], pts=parseInt(p[3]), refl=p[4], bdg=p[5], nameRaw=p[6], tut=p[7];
+    if (!DISC_NAMES[disc]) return null;
+    if (isNaN(pts)||pts<0||pts>100) return null;
+    if (!TUTORIALS.includes(tut)) return null;
+    const badges = bdg&&bdg!=="NONE" ? bdg.split(",").filter(Boolean) : [];
+    const name = nameRaw.charAt(0)+nameRaw.slice(1).toLowerCase();
+    const sidRaw = p[8]||'';
+    const sid = /^\d{5,10}$/.test(sidRaw) ? sidRaw : '';
+    return {disc,type,prof,pts,refl,badges,name,tut,sid,raw:raw.trim()};
+  } catch {return null;}
+}
+
+// ═══════════════════════════════════════════
+//  CUTOFF CHECK
+// ═══════════════════════════════════════════
+function isClosed(tut, cutoffs) {
+  if (!cutoffs||!cutoffs[tut]) return false;
+  return new Date() > new Date(cutoffs[tut]);
+}
+
+// ═══════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════
+let activeTut="all", activeDisc="all";
+
+// ═══════════════════════════════════════════
+//  TABS
+// ═══════════════════════════════════════════
+function switchTab(id,el) {
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  el.classList.add('active');
+  if(id==='board')  renderBoard();
+  if(id==='submit') renderDeadlines();
+  if(id==='admin')  renderCutGrid();
+}
+
+// ═══════════════════════════════════════════
+//  BUILD TUTORIAL BUTTONS
+// ═══════════════════════════════════════════
+function buildTutRow(cutoffs) {
+  const row = document.getElementById('tutRow');
+  row.innerHTML = `<span class="tut-lbl">TUTORIAL ▶</span>
+    <button class="tut-btn ${activeTut==='all'?'active':''}" data-tut="all" onclick="setTut('all',this)">ALL</button>`;
+  TUTORIALS.forEach(t => {
+    const closed = isClosed(t, cutoffs);
+    const hasCut = cutoffs&&cutoffs[t];
+    const dot = hasCut ? `<span class="cdot ${closed?'cdot-closed':'cdot-open'}"></span>` : '';
+    row.innerHTML += `<button class="tut-btn ${activeTut===t?'active':''}" onclick="setTut('${t}',this)">
+      ${t}${dot}
+    </button>`;
+  });
+}
+
+function setTut(t,el) {
+  activeTut=t;
+  document.querySelectorAll('.tut-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  renderBoard();
+}
+function setDisc(d,el) {
+  activeDisc=d;
+  document.querySelectorAll('.dbtn').forEach(b=>b.classList.remove('on-all','on-NM','on-RT','on-DR'));
+  el.classList.add('on-'+d);
+  renderBoard();
+}
+
+// ═══════════════════════════════════════════
+//  RENDER DEADLINE STATUS BOARD (Submit tab)
+// ═══════════════════════════════════════════
+async function renderDeadlines() {
+  const cutoffs = await loadCutoffsFromSheet();
+  const board = document.getElementById('deadlineBoard');
+  const now = new Date();
+
+  board.innerHTML = TUTORIALS.map(t => {
+    const hasCut = !!cutoffs[t];
+    const cutDate = hasCut ? new Date(cutoffs[t]) : null;
+    const closed = hasCut && now > cutDate;
+
+    let statusLine, dateLine, borderCol, glowCol;
+    if (!hasCut) {
+      statusLine = '🟡 NO DATE SET';
+      dateLine   = 'check back soon';
+      borderCol  = 'var(--border)';
+      glowCol    = 'none';
+    } else if (closed) {
+      statusLine = '🔴 CLOSED';
+      dateLine   = cutDate.toLocaleDateString('en-AU',{day:'2-digit',month:'short',year:'numeric'})
+                 + '<br>' + cutDate.toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'});
+      borderCol  = 'var(--red)';
+      glowCol    = '0 0 8px rgba(255,34,68,.35)';
+    } else {
+      const diffMs  = cutDate - now;
+      const diffH   = Math.floor(diffMs/3600000);
+      const diffD   = Math.floor(diffH/24);
+      const urgency = diffH < 24 ? 'color:var(--orange)' : 'color:var(--green)';
+      const countdown = diffD > 0 ? `closes in ${diffD}d ${diffH%24}h` : `closes in ${diffH}h`;
+      statusLine = `<span style="${urgency}">🟢 OPEN</span>`;
+      dateLine   = cutDate.toLocaleDateString('en-AU',{day:'2-digit',month:'short',year:'numeric'})
+                 + '<br>' + cutDate.toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'})
+                 + `<br><span style="${urgency};font-size:.62rem">${countdown}</span>`;
+      borderCol  = diffH < 24 ? 'var(--orange)' : 'var(--green)';
+      glowCol    = diffH < 24 ? '0 0 8px rgba(255,102,0,.3)' : '0 0 8px rgba(0,255,136,.25)';
+    }
+
+    return `<div style="
+        background:var(--dark);
+        border:1px solid ${borderCol};
+        box-shadow:2px 2px 0 var(--bdr2),${glowCol};
+        padding:12px 10px;
+        text-align:center;
+      ">
+      <div style="font-family:'Press Start 2P',monospace;font-size:.5rem;color:var(--yellow);margin-bottom:7px;letter-spacing:.06em">${t}</div>
+      <div style="font-family:'Press Start 2P',monospace;font-size:.38rem;margin-bottom:6px">${statusLine}</div>
+      <div style="font-family:'Share Tech Mono',monospace;font-size:.72rem;color:var(--muted);line-height:1.5">${dateLine}</div>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════
+//  RENDER BOARD
+// ═══════════════════════════════════════════
+async function renderBoard() {
+  let [scores, cutoffs] = await Promise.all([loadScoresFromSheet(), loadCutoffsFromSheet()]);
+  if (!Array.isArray(scores)) scores = [];
+  if (!scores) scores = [];
+  buildTutRow(cutoffs);
+
+  let filtered = scores;
+  if(activeTut !=='all') filtered = filtered.filter(s=>s.tut===activeTut);
+  if(activeDisc!=='all') filtered = filtered.filter(s=>s.disc===activeDisc);
+  const sorted = [...filtered].sort((a,b)=>b.pts-a.pts);
+
+  // global stats
+  const allPts = scores.map(s=>s.pts);
+  document.getElementById('sv-p').textContent = scores.length;
+  document.getElementById('sv-a').textContent = allPts.length ? Math.round(allPts.reduce((a,b)=>a+b,0)/allPts.length) : 0;
+  document.getElementById('sv-t').textContent = allPts.length ? Math.max(...allPts) : 0;
+  document.getElementById('sv-n').textContent = new Set(scores.map(s=>s.tut)).size;
+  document.getElementById('lbCnt').textContent = `${sorted.length} PLAYER${sorted.length!==1?'S':''}`;
+
+  const body  = document.getElementById('lbBody');
+  const empty = document.getElementById('emptyState');
+
+  if(!sorted.length){ body.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+
+  const closedBanner = (activeTut!=='all'&&isClosed(activeTut,cutoffs))
+    ? `<tr class="closed-row"><td colspan="6">🔴 SUBMISSIONS CLOSED FOR ${activeTut} — ${new Date(cutoffs[activeTut]).toLocaleDateString('en-AU',{day:'2-digit',month:'short',year:'numeric'})}</td></tr>`
+    : '';
+
+  body.innerHTML = closedBanner + sorted.map((s,i)=>{
+    const r=i+1, rc=r===1?'r1':r===2?'r2':r===3?'r3':'rn';
+    const ri=r===1?'1ST':r===2?'2ND':r===3?'3RD':r;
+    const col=DISC_COLS[s.disc]||'var(--cyan)';
+    const bdgHtml=s.badges.length ? s.badges.map(b=>`<span class="bdg">${BADGE_EMO[b]||b}</span>`).join('') : '<span style="color:var(--muted);font-size:.72rem">—</span>';
+    const verifiedBadge = s.sid ? `<span title="Prize eligible — Student ID verified" style="font-size:.75rem;margin-left:5px;cursor:default">🏆</span>` : '';
+    return `<tr style="animation-delay:${i*.04}s">
+      <td><div class="rnk ${rc}">${ri}</div></td>
+      <td><div class="nm-cell">${s.name}${verifiedBadge}</div></td>
+      <td><span class="dbadge db-${s.disc}">${s.disc}</span></td>
+      <td><div class="sc-cell">
+        <span class="sc-num" style="color:${col}">${s.pts}</span>
+        <div class="bar-bg"><div class="bar-fill" style="width:${s.pts}%;background:${col}"></div></div>
+      </div></td>
+      <td><div class="bdg-cell">${bdgHtml}</div></td>
+      <td style="font-family:'Share Tech Mono',monospace;font-size:.75rem;color:var(--muted)">${s.tut}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════
+//  PREVIEW
+// ═══════════════════════════════════════════
+async function previewCode() {
+  const raw=document.getElementById('codeInput').value;
+  const p=parseCode(raw);
+  const panel=document.getElementById('prevPanel');
+  const btn=document.getElementById('submitBtn');
+  if(!p){ panel.innerHTML=`<div class="no-prev">░░ PASTE CARRY CODE ░░<br>TO SEE PREVIEW</div>`; btn.disabled=true; return; }
+  const cutoffs=await loadCutoffsFromSheet();
+  const closed=isClosed(p.tut,cutoffs);
+  const col=DISC_COLS[p.disc]||'var(--cyan)';
+  const prizeHtml = p.sid
+    ? `<span style="color:var(--yellow)">🏆 ELIGIBLE (ID: ${p.sid})</span>`
+    : `<span style="color:var(--muted)">— not entered</span>`;
+  panel.innerHTML=`
+    <div class="prow"><span class="pk">NAME</span>    <span class="pv" style="color:${col}">${p.name}</span></div>
+    <div class="prow"><span class="pk">DISC</span>    <span class="pv">${DISC_NAMES[p.disc]}</span></div>
+    <div class="prow"><span class="pk">SCORE</span>   <span class="pv" style="color:var(--yellow)">${p.pts} PTS</span></div>
+    <div class="prow"><span class="pk">TUTORIAL</span><span class="pv">${p.tut}</span></div>
+    <div class="prow"><span class="pk">BADGES</span>  <span class="pv">${p.badges.map(b=>BADGE_EMO[b]||b).join(' ')||'—'}</span></div>
+    <div class="prow"><span class="pk">PRIZE</span>   <span class="pv">${prizeHtml}</span></div>
+    <div class="prow"><span class="pk">STATUS</span>  <span class="pv" style="color:${closed?'var(--red)':'var(--green)'}">
+      ${closed?'🔴 SUBMISSIONS CLOSED':'🟢 READY TO SUBMIT'}
+    </span></div>`;
+  btn.disabled=closed;
+}
+
+// ═══════════════════════════════════════════
+//  SUBMIT — first submission FINAL, no updates
+// ═══════════════════════════════════════════
+async function submitScore() {
+  const raw=document.getElementById('codeInput').value;
+  const p=parseCode(raw);
+  const msg=document.getElementById('subMsg');
+  if(!p){ showMsg(msg,'err','⚠ INVALID CARRY CODE'); return; }
+
+  let [scores, cutoffs]=await Promise.all([loadScoresFromSheet(), loadCutoffsFromSheet()]);
+  if (!Array.isArray(scores)) scores = [];
+  if (!cutoffs) cutoffs = {};
+
+  if(isClosed(p.tut,cutoffs)){ showMsg(msg,'err',`🔴 SUBMISSIONS FOR ${p.tut} ARE CLOSED`); return; }
+
+   // Client-side duplicate check for speed
+  const existing=scores.find(s=>s.name.toLowerCase()===p.name.toLowerCase()&&s.tut===p.tut);
+  if(existing){ showMsg(msg,'err',`⛔ ${p.name} ALREADY SUBMITTED FOR ${p.tut}.\nSCORE LOCKED: ${existing.pts} PTS\nFIRST SUBMISSION IS FINAL.`); return; }
+
+  // Show loading state while contacting Google Sheets
+  const btn=document.getElementById('submitBtn');
+  btn.disabled=true;
+  btn.textContent='▶ SAVING... ◀';
+
+  const result=await submitToSheet(p);
+  btn.textContent='▶ SUBMIT SCORE ◀';
+
+  if(result.ok){
+    spawnCoin();
+    showMsg(msg,'ok',`🎮 SCORE LOCKED IN!\n${p.name} — ${p.pts} PTS — ${p.tut}`);
+    document.getElementById('codeInput').value='';
+    document.getElementById('prevPanel').innerHTML=`<div class="no-prev">░░ PASTE CARRY CODE ░░<br>TO SEE PREVIEW</div>`;
+  } else if(result.duplicate){
+    showMsg(msg,'err',`⛔ ${p.name} ALREADY SUBMITTED FOR ${p.tut}.\nSCORE LOCKED: ${result.existingScore} PTS\nFIRST SUBMISSION IS FINAL.`);
+    btn.disabled=false;
+  } else {
+    showMsg(msg,'err','❌ CONNECTION ERROR. CHECK YOUR INTERNET AND TRY AGAIN.');
+    btn.disabled=false;
+  }
+}
+
+// ═══════════════════════════════════════════
+//  COIN ANIMATION
+// ═══════════════════════════════════════════
+function spawnCoin(){
+  const el=document.createElement('div');
+  el.className='coin-pop'; el.textContent='+1UP';
+  el.style.left=(window.innerWidth/2-30)+'px';
+  el.style.top=(window.innerHeight/2)+'px';
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),1300);
+}
+
+// ═══════════════════════════════════════════
+//  ADMIN — CUTOFF GRID
+// ═══════════════════════════════════════════
+async function renderCutGrid(){
+  const cutoffs=await loadCutoffsFromSheet();
+  const grid=document.getElementById('cutGrid');
+  grid.innerHTML=TUTORIALS.map(t=>{
+    const val=cutoffs[t]?cutoffs[t].slice(0,16):'';
+    const closed=isClosed(t,cutoffs);
+    const hasCut=!!cutoffs[t];
+    const statusHtml=hasCut
+      ?(closed?`<span class="dt-status st-closed">🔴 CLOSED ${new Date(cutoffs[t]).toLocaleDateString('en-AU',{day:'2-digit',month:'short'})}</span>`
+              :`<span class="dt-status st-open">🟢 OPEN — closes ${new Date(cutoffs[t]).toLocaleDateString('en-AU',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</span>`)
+      :`<span class="dt-status st-none">○ NO CUTOFF SET</span>`;
+    return `<div class="cut-row">
+      <div class="cut-lbl">TUTORIAL ${t}</div>
+      <input class="dt-inp" type="datetime-local" id="cut-${t}" value="${val}"/>
+      ${statusHtml}
+    </div>`;
+  }).join('');
+}
+
+async function saveCutoffs(){
+  const pass=document.getElementById('adminPass').value;
+  const msg=document.getElementById('cutMsg');
+  if(pass!==ADMIN_PW){ showMsg(msg,'err','❌ WRONG PASSWORD'); return; }
+  const cutoffs={};
+  TUTORIALS.forEach(t=>{ const v=document.getElementById('cut-'+t)?.value; if(v) cutoffs[t]=new Date(v).toISOString(); });
+  const result=await saveCutoffsToSheet(cutoffs, pass);
+  if(result.ok){ showMsg(msg,'ok','✅ CUTOFF DATES SAVED.'); renderCutGrid(); }
+  else { showMsg(msg,'err','❌ SAVE FAILED. CHECK CONNECTION.'); }
+}
+
+async function clearBoard(){
+  const pass=document.getElementById('adminPass').value;
+  const msg=document.getElementById('admMsg');
+  if(pass!==ADMIN_PW){ showMsg(msg,'err','❌ WRONG PASSWORD'); return; }
+  if(!confirm('CLEAR ALL SCORES? THIS CANNOT BE UNDONE.')) return;
+  const result=await clearScoresFromSheet(pass);
+  if(result.ok) showMsg(msg,'ok','✅ LEADERBOARD CLEARED.');
+  else showMsg(msg,'err','❌ CLEAR FAILED.');
+}
+
+async function exportPrizeCSV(){
+  const pass=document.getElementById('adminPass').value;
+  const msg=document.getElementById('prizeMsg');
+  if(pass!==ADMIN_PW){ showMsg(msg,'err','❌ WRONG PASSWORD'); return; }
+  const scores=await loadScoresFromSheet();
+  const eligible=scores.filter(s=>s.sid);
+  if(!eligible.length){ showMsg(msg,'err','NO PRIZE-ELIGIBLE STUDENTS YET.\nStudents must include their Student ID in their carry code.'); return; }
+  // Sort by score desc for easy prize allocation
+  eligible.sort((a,b)=>b.pts-a.pts);
+  const hdr=['Rank','Name','Student ID','Discipline','Score','Tutorial','Badges','Submitted'];
+  const rows=eligible.map((s,i)=>[i+1,s.name,s.sid,DISC_NAMES[s.disc]||s.disc,s.pts,s.tut,(s.badges||[]).join(';'),s.submitted||'']);
+  const csv=[hdr,...rows].map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download=`mrsc2600_prize_eligible_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  showMsg(msg,'ok',`✅ ${eligible.length} PRIZE-ELIGIBLE STUDENTS EXPORTED.`);
+}
+
+async function exportCSV(){
+  const pass=document.getElementById('adminPass').value;
+  const msg=document.getElementById('admMsg');
+  if(pass!==ADMIN_PW){ showMsg(msg,'err','❌ WRONG PASSWORD'); return; }
+  const scores=await loadScoresFromSheet();
+  if(!scores.length){ showMsg(msg,'err','NO DATA TO EXPORT.'); return; }
+  const hdr=['Name','Student ID','Prize Eligible','Discipline','Score','Type','Profile','Tutorial','Badges','Carry Code','Submitted'];
+  const rows=scores.map(s=>[s.name,s.sid||'',s.sid?'YES':'NO',DISC_NAMES[s.disc]||s.disc,s.pts,s.type||'',s.prof||'',s.tut,(s.badges||[]).join(';'),s.raw,s.submitted||'']);
+  const csv=[hdr,...rows].map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download=`mrsc2600_leaderboard_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  showMsg(msg,'ok','✅ CSV DOWNLOADED.');
+}
+
+function showMsg(el,type,text){
+  el.className='msg '+(type==='ok'?'ok':'err');
+  el.textContent=text; el.style.display='block';
+  clearTimeout(el._t); el._t=setTimeout(()=>el.style.display='none',6000);
+}
+
+// INIT
+renderBoard();
+renderDeadlines();
+</script>
+</body>
+</html>
